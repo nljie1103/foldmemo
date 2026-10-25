@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; base-uri 'none'; form-action 'none'">
-<title>FoldMemo v1.0.2 · 私人笔记与凭据</title>
+<title>FoldMemo v1.0.3 · 私人笔记与凭据</title>
 <style>
 :root{color-scheme:light;--bg:#f2f3f9;--ink:#232b40;--muted:#7c8499;--border:rgba(105,118,151,.17);--glass:rgba(255,255,255,.76);--soft:rgba(255,255,255,.44);--card:rgba(255,255,255,.83);--accent:#675af4;--tint:#ebe9ff;--shadow:0 16px 45px #303e6220;--red:#b53e5a;--amber:#ad711a}
 html[data-theme=dark]{color-scheme:dark;--bg:#141926;--ink:#e9edf8;--muted:#a8b2c8;--border:rgba(175,187,211,.17);--glass:rgba(36,43,61,.78);--soft:rgba(33,40,58,.66);--card:rgba(43,50,71,.83);--tint:#32304d;--shadow:0 15px 46px #0004;--red:#ff9bae;--amber:#eab56b}
@@ -106,6 +106,69 @@ html[data-style=memo] .fab{background:#5d57fc;color:#fff}
 .detailfield{grid-template-columns:110px minmax(0,1fr) max-content}
 @media(max-width:600px){.detailfield{grid-template-columns:1fr max-content;gap:8px}.detailfield>.thin{grid-column:1/-1}.detailfield>.fieldval{grid-column:1;grid-row:2}.detailfield>.field-controls{grid-column:2;grid-row:2}.default-list.card-mode{grid-template-columns:1fr}}
 
+
+/* v1.0.3: responsive app shell, two themes, no hidden notes on small screens */
+.records-filter{display:flex;gap:8px;align-items:center;overflow-x:auto;padding:3px 0 14px;margin:0 0 12px;scrollbar-width:thin;max-width:100%}
+.filter-tab{display:flex;gap:9px;align-items:center;white-space:nowrap;border:1px solid var(--border);border-radius:11px;background:var(--glass);padding:10px 14px;font-size:12px;font-weight:700;color:var(--ink)}
+.filter-tab.selected{background:var(--accent);border-color:var(--accent);color:#fff}
+.filter-count{opacity:.68;font-size:10px;font-weight:600}
+.nav-count{font-size:10px;margin-left:auto;border-radius:6px;padding:0 5px;background:var(--tint);color:var(--accent)}
+.fav-toggle{padding:2px 5px;border-radius:8px;background:transparent;font-size:20px;line-height:1.25;color:#aaa;flex:none;margin-left:auto;z-index:2;position:relative}
+.fav-toggle.is-favorite{color:#e0a42e}.fav-toggle:hover{background:var(--tint)}
+.entry summary .fav-toggle{margin:0 0 0 auto}.entry summary .entry-sub{flex:none}
+.entry[data-sort-id],.memo-card[data-sort-id]{touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.sorting-source{opacity:.55;outline:2px dashed var(--accent)!important}
+.sort-over{outline:3px solid var(--accent)!important;outline-offset:-3px}
+.sort-ghost{position:fixed;z-index:1000;max-width:min(270px,80vw);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;border-radius:12px;padding:10px 14px;background:var(--accent);color:#fff;box-shadow:0 16px 38px #20203044;pointer-events:none;font-size:12px;font-weight:700}
+html[data-style=memo] .records-filter{display:none}
+html[data-style=memo] .memo-tabs .filter-count{font-size:10px;opacity:.65}
+html[data-style=memo] .memo-card{cursor:pointer}
+html[data-style=memo] .memo-card .fav-toggle{float:right;margin:-6px -6px 0 3px}
+html[data-style=memo] .memo-card b{display:block}
+html[data-style=memo] .memo-board{grid-template-columns:repeat(3,minmax(0,1fr));min-height:180px}
+html[data-style=memo] .memo-col{min-height:160px}
+html[data-style=memo] .app{width:min(100%,1480px);max-width:1480px;margin:0 auto;height:100dvh;min-height:0;padding:clamp(8px,2vw,22px);gap:0}
+html[data-style=memo] .surface{min-height:0;overflow:auto}
+html[data-style=memo] .stage{min-width:0;border:1px solid #e9e9e9;border-left:0}
+html[data-style=memo] .sidebar{flex-shrink:0}
+html[data-style=memo] .memo-library{display:none!important}
+html[data-style=memo] .glass,html[data-style=memo] .panel,html[data-style=memo] .entry,html[data-style=memo] .stat,html[data-style=memo] .note-body,html[data-style=memo] .dialog{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;box-shadow:none!important}
+html[data-style=memo] .panel,html[data-style=memo] .note-body,html[data-style=memo] .dialog,html[data-style=memo] .entry{background:#fff;border:1px solid #e8e8eb;border-radius:12px}
+html[data-style=memo] .btn,html[data-style=memo] input,html[data-style=memo] select,html[data-style=memo] textarea{background:#fafafa;border:1px solid #e2e2e6;box-shadow:none;border-radius:9px}
+html[data-style=memo] .btn.primary,html[data-style=memo] .filter-tab.selected{background:#5d57fc;color:#fff}
+html[data-style=memo] .page:not(#page-home):not(#page-notes){padding:clamp(16px,2.5vw,30px)}
+html[data-style=memo] .memo-tabs{max-width:100%;overflow-x:auto}
+html[data-style=memo] .memo-col{min-width:0}
+html[data-style=memo] .memo-card{max-width:100%;overflow-wrap:anywhere}
+@media(max-width:950px){
+ .statgrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ html[data-style=memo] .memo-col:last-child{display:block}
+}
+@media(max-width:680px){
+ .app{padding:5px;gap:5px;min-height:0}
+ .sidebar{flex-basis:54px;min-width:54px;padding:9px 5px;border-radius:13px}
+ .sidebar.expanded{position:absolute;top:5px;bottom:5px;left:5px;z-index:30;width:min(260px,calc(100vw - 65px));flex-basis:auto;min-width:0;box-shadow:0 12px 48px #0005}
+ .stage{min-width:0}.surface{border-radius:12px}
+ .page{padding:15px 12px 55px}.page-head{flex-wrap:wrap}.page-title{font-size:21px}
+ .statgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.stat{padding:12px}.stat b{font-size:23px}
+ .setting{flex-wrap:wrap;gap:10px}.setting select{width:100%;max-width:100%}
+ .fieldgrid{grid-template-columns:minmax(0,1fr)}.formfield.full{grid-column:1}
+ .detailfield{grid-template-columns:minmax(0,1fr) auto}
+ .toolbar-row{gap:6px}.toolbar-row .btn{max-width:100%;white-space:normal}
+ .modal .dialog,.overlay .dialog{max-width:calc(100vw - 18px);max-height:calc(100dvh - 22px);overflow-y:auto}
+ html[data-style=memo] .app{padding:5px}
+ html[data-style=memo] .sidebar{flex-basis:54px;min-width:54px;border-radius:13px 0 0 13px;padding:9px 5px}
+ html[data-style=memo] .sidebar.expanded{position:absolute;inset:5px auto 5px 5px;width:min(252px,calc(100vw - 65px));min-width:0;flex-basis:auto}
+ html[data-style=memo] .stage{border-radius:0 13px 13px 0}
+ html[data-style=memo] .memo-tabs{height:54px;padding:8px;gap:5px}
+ html[data-style=memo] .memo-tab{min-width:100px;max-width:155px;height:38px}
+ html[data-style=memo] .memo-board{min-height:160px;grid-template-columns:1fr}
+ html[data-style=memo] .memo-col:nth-child(n){display:block;min-height:0;border-right:0;padding:11px}
+ html[data-style=memo] .memo-card{font-size:12px}
+}
+@media(max-width:380px){.statgrid{grid-template-columns:1fr}.entry summary{padding:10px 8px;flex-wrap:wrap}.detailfield{grid-template-columns:1fr}.detailfield>.field-controls{grid-column:1}.filter-tab{padding:9px 11px}html[data-style=memo] .memo-tab{min-width:94px}}
+@media(hover:none){.btn,.nav,.filter-tab,.memo-tab{min-height:40px}}
+
 </style>
 </head>
 <body>
@@ -117,15 +180,12 @@ html[data-style=memo] .fab{background:#5d57fc;color:#fff}
       <div class="memo-only side-search sidewords"><input id="memoSearch" type="search" placeholder="搜索笔记和记录" autocomplete="off" aria-label="搜索"></div>
       <div class="sidenav" id="primaryNav">
         <button class="nav active" data-view="home" title="首页"><span class="ico">⌂</span><span class="sidewords" data-i="home">首页</span></button>
-        <button class="nav" data-view="notes" title="笔记"><span class="ico">▤</span><span class="sidewords" data-i="notes">笔记与记录</span></button>
-        <button class="nav" data-view="categories" title="分类管理"><span class="ico">▦</span><span class="sidewords" data-i="categories">分类管理</span></button>
+        <button class="nav" data-view="notes" title="笔记"><span class="ico">▤</span><span class="sidewords" data-i="notes">笔记与记录</span><span class="nav-count sidewords" id="navCountNotes">0</span></button>
+        <button class="nav" data-view="categories" title="分类管理"><span class="ico">▦</span><span class="sidewords" data-i="categories">分类管理</span><span class="nav-count sidewords" id="navCountCats">0</span></button>
         <button class="nav" data-view="themes" title="系统主题"><span class="ico">◈</span><span class="sidewords" data-i="themes">系统主题</span></button>
         <button class="nav" data-view="settings" title="设置"><span class="ico">⚙</span><span class="sidewords" data-i="settings">设置</span></button>
       </div>
-      <div class="memo-only sidewords memo-library"><div class="sideheading">▴ 快速访问 / Quick Access</div>
-        <div class="sidenav" id="quickNav"><button class="nav" data-view="notes"><span class="ico">▣</span><span>全部笔记与记录</span></button><button class="nav" data-view="categories"><span class="ico">▤</span><span>分类模板</span></button></div>
-        <div class="sideheading">▾ 我的分类 / Categories</div><div class="sidenav" id="sideCategories"></div>
-      </div>
+
     </div>
     <div class="side-bottom"><button class="nav" id="sideLock" title="锁定"><span class="ico">⌁</span><span class="sidewords" data-i="lock">锁定</span></button></div>
   </aside>
@@ -136,7 +196,7 @@ html[data-style=memo] .fab{background:#5d57fc;color:#fff}
         <div class="memo-tabs" id="homeTabs"></div><div class="memo-board" id="homeBoard"></div>
       </section>
       <section class="page" id="page-notes"><h1 class="page-title" data-i="notesTitle">笔记与记录</h1><p class="subtitle" data-i="notesSub">点击标题直接展开，或打开独立笔记页</p>
-        <div class="default-only default-list" id="notesList"></div><div class="memo-tabs" id="noteTabs"></div><div class="memo-board" id="notesBoard"></div>
+        <div class="records-filter" id="recordsFilter" role="group" aria-label="记录分类筛选"></div><div class="default-only default-list" id="notesList"></div><div class="memo-tabs" id="noteTabs"></div><div class="memo-board" id="notesBoard"></div>
       </section>
       <section class="page" id="page-categories"><div class="page-head"><div><h1 class="page-title" data-i="categoriesTitle">分类管理</h1><p class="subtitle" data-i="categoriesSub">先定义字段，再填写记录</p></div><button class="btn primary" id="addCategory" data-i="addCategory">新增分类</button></div><div class="category-tabs" id="categoryTabs" role="tablist" aria-label="分类列表"></div><div id="categoryList"></div></section>
       <section class="page" id="page-themes"><h1 class="page-title" data-i="themesTitle">系统主题</h1><p class="subtitle" data-i="themesSub">选择布局、外观和语言</p><div class="panel">
@@ -166,7 +226,7 @@ html[data-style=memo] .fab{background:#5d57fc;color:#fff}
 <input id="fileInput" type="file" accept=".html,.json,.vault.json,text/html,application/json" hidden>
 <script>
 'use strict';
-const $=id=>document.getElementById(id), enc=new TextEncoder(),dec=new TextDecoder(),VERSION='foldmemo-v1.0.2',ITER=310000;
+const $=id=>document.getElementById(id), enc=new TextEncoder(),dec=new TextDecoder(),VERSION='foldmemo-v1.0.3',ITER=310000;
 const HEADER_SOURCE='<!doctype html>\n'+document.documentElement.outerHTML;
 const makeId=()=>crypto.randomUUID();
 const utf=s=>enc.encode(String(s));
@@ -182,15 +242,30 @@ function idb(){return new Promise((resolve,reject)=>{if(!('indexedDB' in window)
 async function storeHandle(){if(!handle||!data)return;try{let db=await idb();await new Promise((resolve,reject)=>{let tr=db.transaction('handles','readwrite');tr.objectStore('handles').put(handle,data.id);tr.oncomplete=resolve;tr.onerror=()=>reject(tr.error)});db.close()}catch(_){/* no vault data is stored here */}}
 async function restoreHandle(){if(!data)return;try{let db=await idb(),res=await new Promise((resolve,reject)=>{let tr=db.transaction('handles','readonly'),req=tr.objectStore('handles').get(data.id);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)});db.close();if(res){let status=await res.queryPermission({mode:'readwrite'});if(status==='granted'){handle=res;boundName=res.name;saveState('已恢复写入授权 · '+res.name)}else saveState('需要重新授权写入 · '+res.name)}}catch(_){}}
 
-const DRAFT_KEY='foldmemo.v102.draft:'+location.href.split('#')[0];
+const DRAFT_KEY='foldmemo.v103.draft:'+location.href.split('#')[0];
 let draftQueue=Promise.resolve(),draftFailure='',categoryFocus=null;
+let pressSort=null,sortWasDragged=false,sortSuppressId=null,dragGhost=null,resizeQueue=0;
 function getDraft(){try{const raw=localStorage.getItem(DRAFT_KEY);return raw?JSON.parse(raw):null}catch(_){return null}}
 function putDraftNow(v){try{localStorage.setItem(DRAFT_KEY,JSON.stringify(v));draftFailure='';return true}catch(e){draftFailure='浏览器本地缓存不可用，请立即保存 HTML：'+e.message;saveState(draftFailure);toast(draftFailure,true);return false}}
 function queueDraft(){if(!data||!meta)return Promise.resolve(false);const snapRev=revision;const job=async()=>{if(!data||!meta)return false;let v=await pack();if(snapRev!==revision)return false;return putDraftNow(v)};draftQueue=draftQueue.catch(()=>{}).then(job);return draftQueue}
-function normalizeAppearance(){if(data){data.appearance??={};if(!['card','list'].includes(data.appearance.cardType))data.appearance.cardType='list'}}
+function normalizeAppearance(){if(data){data.appearance??={};if(!['card','list'].includes(data.appearance.cardType))data.appearance.cardType='list';normalizeOrder()}}
+function normalizeOrder(){if(!data)return;const all=data.items;if(all.some(it=>!Number.isSafeInteger(it.order)||it.order<0)){const sorted=all.slice().sort((a,b)=>Number(b.updatedAt||0)-Number(a.updatedAt||0));sorted.forEach((it,i)=>it.order=i)}}
+function nextOrder(){return data.items.reduce((max,it)=>Math.max(max,Number.isFinite(it.order)?it.order:-1),-1)+1}
+function reorderItems(fromId,toId,after=false){
+ if(fromId===toId||!fromId||!toId)return false;
+ const old=activeItems(),i=old.findIndex(x=>x.id===fromId),j=old.findIndex(x=>x.id===toId);
+ if(i<0||j<0)return false;
+ const moved=old.splice(i,1)[0];let at=old.findIndex(x=>x.id===toId);if(after)at++;
+ old.splice(at,0,moved);
+ const ids=new Set(old.map(x=>x.id));let cursor=0;
+ const global=data.items.slice().sort((a,b)=>a.order-b.order||a.id.localeCompare(b.id));
+ for(let i=0;i<global.length;i++)if(ids.has(global[i].id))global[i]=old[cursor++];
+ global.forEach((it,i)=>it.order=i);mark();render();return true
+}
+
 
 function newData(){return {format:VERSION,id:makeId(),categories:[],items:[],appearance:{style:'default',cardType:'list',scheme:'light',accent:'purple',language:'zh'}}}
-function validate(x){if(!x||x.format!==VERSION||typeof x.id!=='string'||!Array.isArray(x.items)||!Array.isArray(x.categories)||x.items.length>30000||x.categories.length>800)throw Error('仅支持 FoldMemo v1.0.1 数据');let ids=new Set();for(let c of x.categories){if(!c||typeof c.id!=='string'||typeof c.name!=='string'||!Array.isArray(c.fields)||c.fields.length>80)throw Error('分类模板不合法');if(ids.has(c.id))throw Error('分类 ID 重复');ids.add(c.id);for(let f of c.fields)if(!f||typeof f.id!=='string'||typeof f.name!=='string'||!TYPESET.has(f.type))throw Error('字段类型不合法')}for(let it of x.items)if(!it||typeof it.id!=='string'||typeof it.title!=='string'||!['note','record'].includes(it.kind)||typeof it.body!=='string'||!it.values||typeof it.values!=='object')throw Error('笔记结构不合法');return x}
+function validate(x){if(!x||x.format!==VERSION||typeof x.id!=='string'||!Array.isArray(x.items)||!Array.isArray(x.categories)||x.items.length>30000||x.categories.length>800)throw Error('保险库数据结构不兼容');let ids=new Set();for(let c of x.categories){if(!c||typeof c.id!=='string'||typeof c.name!=='string'||!Array.isArray(c.fields)||c.fields.length>80)throw Error('分类模板不合法');if(ids.has(c.id))throw Error('分类 ID 重复');ids.add(c.id);for(let f of c.fields)if(!f||typeof f.id!=='string'||typeof f.name!=='string'||!TYPESET.has(f.type))throw Error('字段类型不合法')}for(let it of x.items)if(!it||typeof it.id!=='string'||typeof it.title!=='string'||!['note','record'].includes(it.kind)||typeof it.body!=='string'||!it.values||typeof it.values!=='object')throw Error('笔记结构不合法');return x}
 async function derive(pass,salt){const input=await crypto.subtle.importKey('raw',utf(pass),'PBKDF2',false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',hash:'SHA-256',salt,iterations:ITER},input,{name:'AES-GCM',length:256},false,['encrypt','decrypt'])}
 async function hashProof(pass,salt){let source=await crypto.subtle.importKey('raw',utf(pass),'PBKDF2',false,['deriveBits']);return b64(await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt,iterations:ITER},source,256))}
 async function makeProof(pass){let salt=crypto.getRandomValues(new Uint8Array(16));return {salt:b64(salt),digest:await hashProof(pass,salt),iterations:ITER}}
@@ -199,7 +274,7 @@ async function wrapKey(raw,pass){let salt=crypto.getRandomValues(new Uint8Array(
 async function unwrapKey(blob,pass){if(!blob||blob.iterations!==ITER)throw Error('密钥格式不支持');let k=await derive(pass,deb64(blob.salt));return new Uint8Array(await crypto.subtle.decrypt({name:'AES-GCM',iv:deb64(blob.iv)},k,deb64(blob.data)))}
 async function createVault(openPass,storePass,openEnabled=true,encryptEnabled=true){if(!crypto.subtle)throw Error('当前环境不支持安全加密');if(openEnabled&&openPass.length<8)throw Error('打开密码至少 8 位');if(encryptEnabled&&storePass.length<8)throw Error('加密密码至少 8 位');let raw=crypto.getRandomValues(new Uint8Array(32));data=newData();dek=raw;meta={openEnabled,encryptEnabled,openWrap:encryptEnabled&&openEnabled?await wrapKey(raw,openPass):null,storeWrap:encryptEnabled?await wrapKey(raw,storePass):null,openProof:openEnabled?await makeProof(openPass):null};envelopeInMemory=null;dirty=true;locked=false;handle=null;boundName='';screen='home';chosenCat='all';query='';normalizeAppearance();finishEnter();if(!(await queueDraft()))toast('本地草稿保存失败，请立即手动保存 HTML',true);saveState('自动草稿已保存于此浏览器；仍需保存 HTML 才能跨设备迁移')}
 async function pack(){if(!data||!meta)throw Error('保险库未解锁');const v={format:VERSION,id:data.id,savedAt:new Date().toISOString(),security:structuredClone(meta)};if(meta.encryptEnabled){let iv=crypto.getRandomValues(new Uint8Array(12)),key=await crypto.subtle.importKey('raw',dek,{name:'AES-GCM'},false,['encrypt','decrypt']);v.encrypted={iv:b64(iv),data:b64(await crypto.subtle.encrypt({name:'AES-GCM',iv},key,utf(JSON.stringify(data))))}}else v.plain=data;return v}
-async function unpack(v,pass,viaStorage=false){if(!v||!['foldmemo-v1.0.0','foldmemo-v1.0.1',VERSION].includes(v.format)||!v.security||v.id!==undefined&&typeof v.id!=='string')throw Error('保险库格式不受支持');let m=v.security,raw=null,payload=null;if(m.encryptEnabled){let wrap=viaStorage?m.storeWrap:(m.openEnabled?m.openWrap:m.storeWrap);if(!wrap)throw Error('未找到解锁方式');raw=await unwrapKey(wrap,pass);let key=await crypto.subtle.importKey('raw',raw,{name:'AES-GCM'},false,['decrypt']);payload=JSON.parse(dec.decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:deb64(v.encrypted.iv)},key,deb64(v.encrypted.data))))}else{if(m.openEnabled&&!await matchProof(pass,m.openProof))throw Error('打开密码错误');payload=v.plain}if(['foldmemo-v1.0.0','foldmemo-v1.0.1'].includes(payload?.format))payload={...payload,format:VERSION,appearance:{cardType:'list',...payload.appearance}};validate(payload);if(v.id!==payload.id)throw Error('文件身份校验失败');return {payload,meta:m,key:raw}}
+async function unpack(v,pass,viaStorage=false){if(!v||!['foldmemo-v1.0.0','foldmemo-v1.0.1','foldmemo-v1.0.2',VERSION].includes(v.format)||!v.security||v.id!==undefined&&typeof v.id!=='string')throw Error('保险库格式不受支持');let m=v.security,raw=null,payload=null;if(m.encryptEnabled){let wrap=viaStorage?m.storeWrap:(m.openEnabled?m.openWrap:m.storeWrap);if(!wrap)throw Error('未找到解锁方式');raw=await unwrapKey(wrap,pass);let key=await crypto.subtle.importKey('raw',raw,{name:'AES-GCM'},false,['decrypt']);payload=JSON.parse(dec.decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:deb64(v.encrypted.iv)},key,deb64(v.encrypted.data))))}else{if(m.openEnabled&&!await matchProof(pass,m.openProof))throw Error('打开密码错误');payload=v.plain}if(['foldmemo-v1.0.0','foldmemo-v1.0.1','foldmemo-v1.0.2'].includes(payload?.format))payload={...payload,format:VERSION,appearance:{cardType:'list',...payload.appearance}};validate(payload);if(v.id!==payload.id)throw Error('文件身份校验失败');return {payload,meta:m,key:raw}}
 async function unlock(v,pass,viaStorage=false){const p=await unpack(v,pass,viaStorage);data=p.payload;meta=p.meta;dek=p.key;envelopeInMemory=v;locked=false;dirty=false;handle=null;boundName='';screen='home';chosenCat='all';query='';normalizeAppearance();finishEnter();saveState('保险库已解锁 · 本地草稿自动恢复仅限此文件路径');await queueDraft();await restoreHandle()}
 function fromEmbedded(){try{const s=$('embeddedVault').textContent.trim();return s&&s!=='null'?JSON.parse(s):null}catch(_){return null}}
 function sourceHtml(v){const payload=JSON.stringify(v).replaceAll('<','\\u003c').replaceAll('>','\\u003e').replaceAll('&','\\u0026');const re=/(<script type="application\/json" id="embeddedVault">)[\s\S]*?(<\/script>)/;if(!re.test(HEADER_SOURCE))throw Error('HTML 数据槽缺失');return HEADER_SOURCE.replace(re,(_m,a,b)=>a+payload+b)}
@@ -259,7 +334,7 @@ async function loadImportedFile(file){
   const v=parseFile(await file.text());
   if(data&&dirty&&!confirm('当前保险库存在未写入 HTML 的修改，导入会替换当前会话。请确认已备份，是否继续？'))return;
   let imported=null;
-  if(['foldmemo-v1.0.0','foldmemo-v1.0.1',VERSION].includes(v?.format)){
+  if(['foldmemo-v1.0.0','foldmemo-v1.0.1','foldmemo-v1.0.2',VERSION].includes(v?.format)){
    let needStore=!!v.security?.encryptEnabled;
    let needsPass=needStore||v.security?.openEnabled;
    let pass=needsPass?prompt(needStore?'输入所选文件的存储加密密码：':'输入所选文件的打开密码：',''):'';
@@ -280,15 +355,28 @@ async function loadImportedFile(file){
  }catch(e){toast('导入失败：'+(e.name==='OperationError'?'密码错误或文件已损坏':e.message),true)}
 }
 function openImport(){const f=$('fileInput');f.value='';f.click()}
-async function exportBackup(){try{let v=await pack();download(JSON.stringify(v,null,2),'FoldMemo-v1.0.1.vault.json','application/json');toast(meta.encryptEnabled?'已导出加密备份':'已导出明文备份！请妥善保存')}catch(e){toast(e.message,true)}}
+async function exportBackup(){try{let v=await pack();download(JSON.stringify(v,null,2),'FoldMemo-v1.0.3.vault.json','application/json');toast(meta.encryptEnabled?'已导出加密备份':'已导出明文备份！请妥善保存')}catch(e){toast(e.message,true)}}
 function exportMarkdown(){if(!data)return;const include=confirm(zh('导出的 Markdown 为明文。是否包含“密码”类型字段？选择取消将隐藏密码。','Markdown exports are plain text. Include password fields? Cancel hides them.'));let lines=['# FoldMemo · '+zh('折叠备忘录','Collapsible notes'),''];for(const it of data.items){let cat=data.categories.find(x=>x.id===it.categoryId);lines.push('<details>','<summary>'+h(it.title)+'</summary>','');if(it.kind==='note')lines.push('<p>'+h(it.body).replaceAll('\n','<br>')+'</p>');else for(const f of cat?.fields||[]){let val=String(it.values[f.id]||'');if(f.type==='password'&&!include)val='••••••（已隐藏）';lines.push('<p><strong>'+h(f.name)+'：</strong>'+h(val).replaceAll('\n','<br>')+'</p>')}lines.push('','</details>','')}download(lines.join('\n'),'FoldMemo-notes.md','text/markdown;charset=utf-8');toast(include?'包含密码的明文 Markdown 已导出':'已导出折叠 Markdown')}
-function applyAppearance(){if(!data)return;let a=data.appearance;document.documentElement.dataset.style=a.style;document.documentElement.dataset.accent=a.accent;document.documentElement.dataset.theme=a.scheme==='system'?(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'):a.scheme;document.documentElement.lang=a.language==='en'?'en':'zh';$('styleSelect').value=a.style;$('cardTypeSelect').value=a.cardType||'list';$('schemeSelect').value=a.scheme;$('langSelect').value=a.language;$('memoSearch').placeholder=zh('搜索笔记和记录','Search notes and records');document.querySelectorAll('[data-i]').forEach(x=>{const t=word[a.language]?.[x.dataset.i];if(t)x.textContent=t});document.querySelectorAll('.swatch').forEach(x=>x.classList.toggle('selected',x.dataset.color===a.accent));$('styleSelect').options[0].textContent=zh('默认风格','Default');$('styleSelect').options[1].textContent=zh('备忘录风格','Note desk');$('cardTypeSelect').options[0].textContent=zh('列表','List');$('cardTypeSelect').options[1].textContent=zh('卡片','Cards');$('schemeSelect').options[0].textContent=zh('日间','Light');$('schemeSelect').options[1].textContent=zh('夜间','Dark');$('schemeSelect').options[2].textContent=zh('跟随系统','System');document.title='FoldMemo v1.0.2';}
+function applyAppearance(){if(!data)return;let a=data.appearance;document.documentElement.dataset.style=a.style;document.documentElement.dataset.accent=a.accent;document.documentElement.dataset.theme=a.scheme==='system'?(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'):a.scheme;document.documentElement.lang=a.language==='en'?'en':'zh';$('styleSelect').value=a.style;$('cardTypeSelect').value=a.cardType||'list';$('schemeSelect').value=a.scheme;$('langSelect').value=a.language;$('memoSearch').placeholder=zh('搜索笔记和记录','Search notes and records');document.querySelectorAll('[data-i]').forEach(x=>{const t=word[a.language]?.[x.dataset.i];if(t)x.textContent=t});document.querySelectorAll('.swatch').forEach(x=>x.classList.toggle('selected',x.dataset.color===a.accent));$('styleSelect').options[0].textContent=zh('默认风格','Default');$('styleSelect').options[1].textContent=zh('备忘录风格','Note desk');$('cardTypeSelect').options[0].textContent=zh('列表','List');$('cardTypeSelect').options[1].textContent=zh('卡片','Cards');$('schemeSelect').options[0].textContent=zh('日间','Light');$('schemeSelect').options[1].textContent=zh('夜间','Dark');$('schemeSelect').options[2].textContent=zh('跟随系统','System');document.title='FoldMemo v1.0.3';}
 matchMedia('(prefers-color-scheme:dark)').addEventListener?.('change',()=>{if(data?.appearance.scheme==='system')applyAppearance()});
 function finishEnter(){locked=false;$('gate').classList.remove('show');$('app').removeAttribute('aria-hidden');$('sidebar').classList.remove('expanded');sidebarExpanded=false;applyAppearance();navTo('home');}
 function gateDraw(v){$('gate').classList.add('show');$('app').setAttribute('aria-hidden','true');$('gateError').textContent='';const isNew=!v;$('gateTitle').textContent=isNew?'创建私人保险库':'解锁私人保险库';$('gateDesc').textContent=isNew?'新建独立保险库。自动恢复仅限这个文件路径；跨设备请保存完整 HTML。':'从当前文件内嵌数据解锁；不会自动读取其他文件。';const x=$('gateFields');if(isNew){x.innerHTML='<div class="formline"><label class="checkrow"><input type="checkbox" id="newOpenEnabled" checked>打开时要求密码</label></div><div class="formline" id="newOpenPassRow"><input type="password" id="newOpenPass" autocomplete="new-password" placeholder="设置打开密码（至少8位）"></div><div class="formline"><label class="checkrow"><input type="checkbox" id="newEncryptEnabled" checked>AES-256-GCM 存储加密</label></div><div class="formline" id="newStorePassRow"><input type="password" id="newStorePass" autocomplete="new-password" placeholder="设置独立的存储加密密码（至少8位）"></div><div class="alert">无加密时数据将以明文写入 HTML。密码不会自动上传；请自行保存两种密码。</div>'; $('gateSubmit').textContent='创建';$('newOpenEnabled').onchange=e=>{const active=e.target.checked;$('newOpenPassRow').hidden=!active;$('newOpenPass').disabled=!active;if(!active)$('newOpenPass').value=''};$('newEncryptEnabled').onchange=e=>{const active=e.target.checked;$('newStorePassRow').hidden=!active;$('newStorePass').disabled=!active;if(!active)$('newStorePass').value=''};}else{const m=v.security;let needs=m.openEnabled||m.encryptEnabled;x.innerHTML='<div class="formline"><input type="password" id="unlockPass" autocomplete="current-password" placeholder="'+(m.openEnabled?'打开密码':m.encryptEnabled?'存储加密密码':'无需密码')+'" '+(!needs?'disabled':'')+'></div>'; $('gateSubmit').textContent='解锁';} $('gateImport').textContent='导入已有保险库';}
 async function gateSubmit(){try{$('gateError').textContent='';let v=envelopeInMemory||fromEmbedded();if(!v){await createVault($('newOpenPass').value,$('newStorePass').value,$('newOpenEnabled').checked,$('newEncryptEnabled').checked)}else await unlock(v,$('unlockPass')?.value||'')}catch(e){$('gateError').textContent=e.message}}
 function navTo(view){if(locked)return;screen=view;detailId=null;document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id==='page-'+view));document.querySelectorAll('#primaryNav .nav').forEach(x=>x.classList.toggle('active',x.dataset.view===view));$('fab').hidden=!['home','notes'].includes(view);render();$('surface').scrollTo(0,0)}
-function activeItems(){let items=data.items;if(chosenCat!=='all')items=items.filter(x=>x.categoryId===chosenCat);if(query&&data.appearance.style==='memo'){const needle=query.toLocaleLowerCase();items=items.filter(it=>{if(it.title.toLocaleLowerCase().includes(needle)||it.body.toLocaleLowerCase().includes(needle))return true;const fields=data.categories.find(cat=>cat.id===it.categoryId)?.fields||[];return fields.some(f=>f.type!=='password'&&String(it.values[f.id]||'').toLocaleLowerCase().includes(needle))})}return items.slice().sort((a,b)=>b.updatedAt-a.updatedAt)}
+function activeItems(){let items=data.items;
+ if(chosenCat==='favorites')items=items.filter(x=>x.favorite===true);
+ else if(chosenCat!=='all')items=items.filter(x=>x.categoryId===chosenCat);
+ if(query&&data.appearance.style==='memo'){
+  const needle=query.toLocaleLowerCase();items=items.filter(it=>it.title.toLocaleLowerCase().includes(needle)||it.body.toLocaleLowerCase().includes(needle)||(data.categories.find(cat=>cat.id===it.categoryId)?.fields||[]).some(f=>f.type!=='password'&&String(it.values[f.id]||'').toLocaleLowerCase().includes(needle)))
+ }
+ return items.slice().sort((a,b)=>Number(a.order||0)-Number(b.order||0)||a.id.localeCompare(b.id))
+}
+function filtersHtml(cssClass='filter-tab', attr='data-tab'){
+ const buttons=[['favorites',zh('★ 收藏','★ Favorites'),data.items.filter(x=>x.favorite).length],['all',zh('全部','All'),data.items.length],...data.categories.map(c=>[c.id,c.name,data.items.filter(x=>x.categoryId===c.id).length])];
+ return buttons.map(([id,name,n])=>`<button type="button" class="${cssClass} ${chosenCat===id?'selected':''}" ${attr}="${h(id)}" aria-pressed="${String(chosenCat===id)}"><span>${h(name)}</span><span class="filter-count">${n}</span></button>`).join('')
+}
+function memoCols(){const w=$('stage').getBoundingClientRect().width||innerWidth;return w<580?1:w<960?2:3}
+function favoriteButton(it){return `<button type="button" class="fav-toggle ${it.favorite?'is-favorite':''}" data-action="favorite" data-id="${h(it.id)}" aria-label="${it.favorite?'取消收藏':'收藏'}" title="${it.favorite?'取消收藏':'收藏'}" aria-pressed="${String(!!it.favorite)}">${it.favorite?'★':'☆'}</button>`}
 function normalizedUrl(raw){let value=String(raw??'').trim();if(!value)return null;if(/[\u0000-\u001f\u007f\\]/.test(value)||/\s/.test(value))return null;try{let parsed=new URL(/^[a-z][a-z0-9+.-]*:/i.test(value)?value:'https://'+value);if(!['http:','https:'].includes(parsed.protocol)||!parsed.hostname)return null;return parsed.href}catch(_){return null}}
 function fieldRow(f,it){
  let raw=String(it.values[f.id]??''),common=`data-id="${h(it.id)}" data-field="${h(f.id)}"`;
@@ -300,14 +388,23 @@ function fieldRow(f,it){
  }
  return `<div class="detailfield"><b class="thin">${h(f.name)}</b><span class="fieldval">${h(raw)}</span><div class="field-controls">${copy}</div></div>`;
 }
-function makeDefaultEntry(it){const cat=data.categories.find(c=>c.id===it.categoryId);let summary=`<summary><span class="entry-title">${h(it.title)}</span><span class="tag">${h(cat?.name||(it.kind==='note'?'笔记':'未分类'))}</span><span class="entry-sub">${new Date(it.updatedAt).toLocaleDateString()}</span></summary>`;let body=it.kind==='note'?`<p class="longtext">${h(it.body)}</p>`:(cat?.fields||[]).map(f=>fieldRow(f,it)).join('');return `<details class="entry">${summary}<div class="entry-detail">${body}<div class="entry-actions"><button class="btn small" data-action="open" data-id="${h(it.id)}">查看详情</button><button class="btn small" data-action="edit" data-id="${h(it.id)}">编辑</button><button class="btn small warn" data-action="delete" data-id="${h(it.id)}">删除</button></div></div></details>`}
-function renderBoard(container,tabs,items){const categories=data.categories;tabs.innerHTML=`<button class="memo-tab ${chosenCat==='all'?'selected':''}" data-tab="all"><span>${zh('全部','All notes')}</span><span class="tab-close" aria-hidden="true">×</span></button>`+categories.map(c=>`<button class="memo-tab ${chosenCat===c.id?'selected':''}" data-tab="${h(c.id)}"><span>${h(c.name)}</span><span class="tab-close" aria-hidden="true">×</span></button>`).join('')+`<button class="memo-newtab" data-action="add-category" title="新增分类" aria-label="新增分类">＋</button>`;
- const cols=[[],[],[]];items.forEach((it,i)=>cols[i%3].push(it));container.innerHTML=cols.map((col,index)=>`<section class="memo-col" aria-label="${zh('第','Column ')}${index+1}${zh('列','')}">${col.map(it=>{const cat=categories.find(c=>c.id===it.categoryId),snippet=it.kind==='note'?it.body:(cat?.fields||[]).filter(f=>f.type!=='password').map(f=>String(it.values[f.id]||'')).filter(Boolean).join(' · ');return `<button class="memo-card" data-action="open" data-id="${h(it.id)}" aria-label="打开 ${h(it.title)}"><span class="memo-card-menu" aria-hidden="true">···</span><b>${h(it.title)}</b>${snippet?`<div class="preview">${h(snippet.slice(0,180))}</div>`:''}<footer><span>${h(cat?.name||(it.kind==='note'?zh('笔记','Note'):zh('未分类','Uncategorized')))}</span><span class="memo-docicon" aria-hidden="true">▤</span></footer></button>`}).join('')}</section>`).join('')}
+function makeDefaultEntry(it){const cat=data.categories.find(c=>c.id===it.categoryId);let summary=`<summary><span class="entry-title">${h(it.title)}</span>${favoriteButton(it)}<span class="tag">${h(cat?.name||(it.kind==='note'?'笔记':'未分类'))}</span><span class="entry-sub">${new Date(it.updatedAt).toLocaleDateString()}</span></summary>`;let body=it.kind==='note'?`<p class="longtext">${h(it.body)}</p>`:(cat?.fields||[]).map(f=>fieldRow(f,it)).join('');return `<details class="entry" data-sort-id="${h(it.id)}">${summary}<div class="entry-detail">${body}<div class="entry-actions"><button class="btn small" data-action="open" data-id="${h(it.id)}">查看详情</button><button class="btn small" data-action="edit" data-id="${h(it.id)}">编辑</button><button class="btn small warn" data-action="delete" data-id="${h(it.id)}">删除</button></div></div></details>`}
+function renderBoard(container,tabs,items){
+ tabs.innerHTML=filtersHtml('memo-tab','data-tab');
+ const n=memoCols(),cols=Array.from({length:n},()=>[]);
+ items.forEach((it,i)=>cols[i%n].push(it));
+ container.style.gridTemplateColumns=`repeat(${n}, minmax(0, 1fr))`;
+ container.innerHTML=cols.map((col,index)=>`<section class="memo-col" aria-label="${zh('第','Column ')}${index+1}${zh('列','')}">${col.map(it=>{
+ const cat=data.categories.find(c=>c.id===it.categoryId),snippet=it.kind==='note'?it.body:(cat?.fields||[]).filter(f=>f.type!=='password').map(f=>String(it.values[f.id]||'')).filter(Boolean).join(' · ');
+ return `<article class="memo-card" role="button" tabindex="0" data-action="open" data-id="${h(it.id)}" data-sort-id="${h(it.id)}" aria-label="打开 ${h(it.title)}">${favoriteButton(it)}<b>${h(it.title)}</b>${snippet?`<div class="preview">${h(snippet.slice(0,180))}</div>`:''}<footer><span>${h(cat?.name||(it.kind==='note'?zh('笔记','Note'):zh('未分类','Uncategorized')))}</span><span class="memo-docicon" aria-hidden="true">▤</span></footer></article>`
+ }).join('')}</section>`).join('');
+}
 
 function render(){if(locked||!data)return;
  const isMemo=data.appearance.style==='memo';
  if(screen==='home'||screen==='notes'){
   const items=activeItems();
+  if(screen==='notes')$('recordsFilter').innerHTML=filtersHtml('filter-tab','data-tab');
   if(screen==='home'){
    if(isMemo)renderBoard($('homeBoard'),$('homeTabs'),items);
    else{
@@ -327,7 +424,7 @@ function render(){if(locked||!data)return;
   $('categoryList').innerHTML=c?`<div class="panel"><div class="category-summary"><div><h3 style="margin:0 0 5px">${h(c.name)}</h3><span class="thin">${c.fields.length} 个字段 · ${data.items.filter(x=>x.categoryId===c.id).length} 条记录</span></div><div class="toolbar-row"><button class="btn small" data-action="categoryView" data-id="${h(c.id)}">查看记录</button><button class="btn small" data-action="categoryEdit" data-id="${h(c.id)}">编辑模板</button><button class="btn small warn" data-action="categoryDelete" data-id="${h(c.id)}">删除</button></div></div><div class="category-structure">${c.fields.map((f,i)=>`<div class="structure-field"><b>${i+1}. ${h(f.name)}</b><span>${{text:'普通文本',password:'密码',url:'网址',multiline:'多行文本'}[f.type]||f.type}</span></div>`).join('')||'<span class="muted">暂无字段，点击编辑模板添加</span>'}</div></div>`:'<div class="empty">尚未创建分类，请点击右上角“新增分类”。</div>';
  }
  if(screen==='settings')$('securityState').textContent=(meta.openEnabled?'打开密码已启用':'打开密码已关闭')+' · '+(meta.encryptEnabled?'AES-256-GCM 存储加密已启用':'存储加密已关闭（明文）');
- if(isMemo)$('sideCategories').innerHTML=data.categories.map(c=>`<button class="nav ${chosenCat===c.id?'active':''}" data-category="${h(c.id)}"><span class="ico">▤</span><span>${h(c.name)}</span><span class="memo-count">${data.items.filter(x=>x.categoryId===c.id).length}</span></button>`).join('');
+ $('navCountNotes').textContent=String(data.items.length);$('navCountCats').textContent=String(data.categories.length);
  if(screen==='detail')renderDetail();
 }
 function renderDetail(){const it=data.items.find(x=>x.id===detailId);if(!it)return navTo('notes');const cat=data.categories.find(x=>x.id===it.categoryId);$('detailView').innerHTML=`<span class="tag">${h(cat?.name||(it.kind==='note'?'笔记':'未分类'))}</span><h1>${h(it.title)}</h1><div class="toolbar-row" style="margin-bottom:18px"><button class="btn small" data-action="edit" data-id="${h(it.id)}">编辑</button></div><div class="note-body">${it.kind==='note'?h(it.body):(cat?.fields||[]).map(f=>fieldRow(f,it)).join('')}</div>`}
@@ -336,13 +433,62 @@ function modalOpen(title,desc,html,fn){$('modalSubmit').hidden=false;$('modalTit
 function modalClose(){modalAction=null;$('modal').classList.remove('show')}
 function fieldTemplate(c){return (c?.fields||[]).map(f=>`<div class="type-row" data-fid="${h(f.id)}"><input class="tmpl-name" value="${h(f.name)}" placeholder="字段名称"><select class="tmpl-type"><option value="text" ${f.type==='text'?'selected':''}>文本</option><option value="password" ${f.type==='password'?'selected':''}>密码</option><option value="url" ${f.type==='url'?'selected':''}>网址</option><option value="multiline" ${f.type==='multiline'?'selected':''}>多行</option></select><button class="btn small warn" data-action="removeField">×</button></div>`).join('')}
 function categoryEditor(id=null){const c=data.categories.find(x=>x.id===id);modalOpen(id?'编辑分类':'新增分类','记录字段只能从分类模板中选择，允许日后修改模板。',`<label class="formfield">分类名称<input id="catName" value="${h(c?.name||'')}" maxlength="80"></label><h3 style="margin:20px 0 4px">字段模板</h3><div id="fieldTemplate" class="field-template">${fieldTemplate(c)}</div><button class="btn small" id="appendField" type="button">＋ 添加字段</button>`,()=>{const name=$('catName').value.trim();if(!name)throw Error('请输入分类名称');let fields=[...$('fieldTemplate').querySelectorAll('.type-row')].map(row=>({id:row.dataset.fid||makeId(),name:row.querySelector('.tmpl-name').value.trim(),type:row.querySelector('.tmpl-type').value}));if(fields.some(f=>!f.name))throw Error('字段名称不能为空');if(new Set(fields.map(f=>f.name)).size!==fields.length)throw Error('字段名称不能重复');if(c){let removed=new Set(c.fields.map(f=>f.id).filter(fid=>!fields.some(f=>f.id===fid)));if(removed.size&& !confirm('删除字段将同时删除此分类所有记录中的该字段内容。确认吗？'))return false;c.name=name;c.fields=fields;for(const it of data.items.filter(x=>x.categoryId===c.id)){for(const fid of removed)delete it.values[fid];for(const f of fields)if(!(f.id in it.values))it.values[f.id]=''}}else data.categories.push({id:makeId(),name,fields});mark();render();return true});$('appendField').onclick=()=>{$('fieldTemplate').insertAdjacentHTML('beforeend',fieldTemplate({fields:[{id:makeId(),name:'',type:'text'}]}))}}
-function recordEditor(kind='record',id=null){const it=data.items.find(x=>x.id===id);if(kind==='record'&&!data.categories.length){toast('请先创建分类与字段模板',true);navTo('categories');return}let allowed=kind==='note'?'<option value="">无分类</option>':'';allowed+=data.categories.map(c=>`<option value="${h(c.id)}" ${c.id===it?.categoryId?'selected':''}>${h(c.name)}</option>`).join('');let fields=`<div class="fieldgrid"><label class="formfield full">标题<input id="itemTitle" maxlength="180" value="${h(it?.title||'')}"></label><label class="formfield">分类<select id="itemCat">${allowed}</select></label></div><div id="dynamicFields"></div>`;modalOpen(id?'编辑'+(kind==='note'?'笔记':'记录'):'创建'+(kind==='note'?'笔记':'记录'),kind==='record'?'字段由分类模板决定，不允许在此临时增加字段。':'长文本笔记可打开独立阅读页面。',fields,()=>{let title=$('itemTitle').value.trim();if(!title)throw Error('请输入标题');let cid=$('itemCat').value;if(kind==='record'&&!cid)throw Error('请选择分类');let values=kind==='record'?{}:(it?.values||{}),body=kind==='note'?$('noteBody').value:'';if(kind==='record'){let cat=data.categories.find(c=>c.id===cid);for(let f of cat.fields)values[f.id]=$('rf-'+f.id).value}if(it){Object.assign(it,{title,categoryId:cid,values,body,updatedAt:Date.now()})}else{data.items.push({id:makeId(),kind,title,categoryId:cid,values,body,createdAt:Date.now(),updatedAt:Date.now()})}mark();render();return true});function setFields(){let cat=data.categories.find(c=>c.id===$('itemCat').value);if(kind==='note'){$('dynamicFields').innerHTML='<label class="formfield" style="margin-top:15px">正文<textarea id="noteBody" rows="13" placeholder="在这里记录长文本、Markdown 或任意备忘内容…"></textarea></label>';$('noteBody').value=it?.body||''}else{$('dynamicFields').innerHTML='<div class="fieldgrid" style="margin-top:16px">'+(cat?.fields||[]).map(f=>`<label class="formfield ${f.type==='multiline'?'full':''}">${h(f.name)}${f.type==='multiline'?`<textarea id="rf-${h(f.id)}" rows="4"></textarea>`:`<input id="rf-${h(f.id)}" type="${f.type==='password'?'password':f.type==='url'?'url':'text'}" autocomplete="off">`}</label>`).join('')+'</div>';for(let f of cat?.fields||[])$('rf-'+f.id).value=it?.values[f.id]||''}}setFields();$('itemCat').onchange=setFields}
+function recordEditor(kind='record',id=null){const it=data.items.find(x=>x.id===id);if(kind==='record'&&!data.categories.length){toast('请先创建分类与字段模板',true);navTo('categories');return}let allowed=kind==='note'?'<option value="">无分类</option>':'';allowed+=data.categories.map(c=>`<option value="${h(c.id)}" ${c.id===it?.categoryId?'selected':''}>${h(c.name)}</option>`).join('');let fields=`<div class="fieldgrid"><label class="formfield full">标题<input id="itemTitle" maxlength="180" value="${h(it?.title||'')}"></label><label class="formfield">分类<select id="itemCat">${allowed}</select></label></div><div id="dynamicFields"></div>`;modalOpen(id?'编辑'+(kind==='note'?'笔记':'记录'):'创建'+(kind==='note'?'笔记':'记录'),kind==='record'?'字段由分类模板决定，不允许在此临时增加字段。':'长文本笔记可打开独立阅读页面。',fields,()=>{let title=$('itemTitle').value.trim();if(!title)throw Error('请输入标题');let cid=$('itemCat').value;if(kind==='record'&&!cid)throw Error('请选择分类');let values=kind==='record'?{}:(it?.values||{}),body=kind==='note'?$('noteBody').value:'';if(kind==='record'){let cat=data.categories.find(c=>c.id===cid);for(let f of cat.fields)values[f.id]=$('rf-'+f.id).value}if(it){Object.assign(it,{title,categoryId:cid,values,body,updatedAt:Date.now()})}else{data.items.push({id:makeId(),kind,title,categoryId:cid,values,body,createdAt:Date.now(),updatedAt:Date.now(),order:nextOrder(),favorite:false})}mark();render();return true});function setFields(){let cat=data.categories.find(c=>c.id===$('itemCat').value);if(kind==='note'){$('dynamicFields').innerHTML='<label class="formfield" style="margin-top:15px">正文<textarea id="noteBody" rows="13" placeholder="在这里记录长文本、Markdown 或任意备忘内容…"></textarea></label>';$('noteBody').value=it?.body||''}else{$('dynamicFields').innerHTML='<div class="fieldgrid" style="margin-top:16px">'+(cat?.fields||[]).map(f=>`<label class="formfield ${f.type==='multiline'?'full':''}">${h(f.name)}${f.type==='multiline'?`<textarea id="rf-${h(f.id)}" rows="4"></textarea>`:`<input id="rf-${h(f.id)}" type="${f.type==='password'?'password':f.type==='url'?'url':'text'}" autocomplete="off">`}</label>`).join('')+'</div>';for(let f of cat?.fields||[])$('rf-'+f.id).value=it?.values[f.id]||''}}setFields();$('itemCat').onchange=setFields}
 function createPicker(){modalOpen('新增内容','选择要创建的类型。','<div class="toolbar-row"><button class="btn primary" id="chooseNote">长文本笔记</button><button class="btn primary" id="chooseRecord">分类字段记录</button></div>',()=>true);$('modalSubmit').hidden=true;$('chooseNote').onclick=()=>{modalClose();recordEditor('note')};$('chooseRecord').onclick=()=>{modalClose();recordEditor('record')}}
 async function copyVal(value){try{await navigator.clipboard.writeText(value);toast('已复制')}catch(_){let t=document.createElement('textarea');t.value=value;t.style.position='fixed';t.style.left='-9999px';document.body.append(t);t.select();let ok=document.execCommand('copy');t.remove();toast(ok?'已复制':'浏览器禁止复制，请手动选择',!ok)}}
 async function lock(){if(dirty){await queueDraft();if(!handle&&draftFailure){toast('本地草稿保存不可用，请先保存 HTML',true);navTo('settings');return}if(!handle){envelopeInMemory=await pack();dirty=false;saveState('已保留本机恢复草稿 · 尚未写入 HTML')}else if(handle){try{await saveToBound()}catch(e){toast('锁定前保存失败：'+e.message,true);return}}}if(!envelopeInMemory)envelopeInMemory=await pack();data=null;dek=null;meta=null;locked=true;handle=null;boundName='';$('gate').classList.add('show');gateDraw(envelopeInMemory);$('app').setAttribute('aria-hidden','true')}
 function requestSecurity(){const open=meta.openEnabled,encrypted=meta.encryptEnabled;modalOpen('修改密码与加密方式','修改后请再次保存 HTML 才会永久生效。',`<div class="formline checkrow"><input id="secOpen" type="checkbox" ${open?'checked':''}>启用打开密码</div><label class="formfield">新的打开密码<input type="password" id="secOpenPass" autocomplete="new-password" placeholder="开启后必填，至少8位"></label><div class="formline checkrow"><input id="secEncrypt" type="checkbox" ${encrypted?'checked':''}>启用 AES-256-GCM 加密</div><label class="formfield">新的存储密码<input type="password" id="secStorePass" autocomplete="new-password" placeholder="开启后必填，至少8位"></label><div class="alert">禁用 AES 将使完整保险库以明文形式保存。禁用打开密码但保持加密时，下次打开需要输入存储密码。</div>`,async()=>{let op=$('secOpen').checked,ep=$('secEncrypt').checked,p1=$('secOpenPass').value,p2=$('secStorePass').value;if(op&&p1.length<8)throw Error('新打开密码至少8位');if(ep&&p2.length<8)throw Error('新加密密码至少8位');if(!ep&&!confirm('关闭加密后文件将是明文！确认继续吗？'))return false; if(ep&&!dek)dek=crypto.getRandomValues(new Uint8Array(32));meta={openEnabled:op,encryptEnabled:ep,openWrap:ep&&op?await wrapKey(dek,p1):null,storeWrap:ep?await wrapKey(dek,p2):null,openProof:op?await makeProof(p1):null};mark();render();return true});$('secOpen').onchange=()=>{$('secOpenPass').closest('label').hidden=!$('secOpen').checked;if(!$('secOpen').checked)$('secOpenPass').value=''};$('secEncrypt').onchange=()=>{$('secStorePass').closest('label').hidden=!$('secEncrypt').checked;if(!$('secEncrypt').checked)$('secStorePass').value=''};$('secOpen').onchange();$('secEncrypt').onchange();}
 function showGateImport(){openImport()}
-function onClick(e){let b=e.target.closest('button');if(!b)return;if(b.dataset.view){navTo(b.dataset.view);return}if(b.dataset.category){chosenCat=b.dataset.category;navTo('notes');return}if(b.dataset.catFocus){categoryFocus=b.dataset.catFocus;render();return}if(b.dataset.tab){chosenCat=b.dataset.tab;navTo('notes');return}if(b.dataset.action==='add-category'){categoryEditor();return}const action=b.dataset.action,id=b.dataset.id,it=id&&data.items.find(x=>x.id===id);if(action==='open'){openDetail(id);return}if(action==='edit'&&it){recordEditor(it.kind,it.id);return}if(action==='delete'&&it){if(confirm('确认删除“'+it.title+'”？')){data.items=data.items.filter(x=>x.id!==id);mark();navTo('notes')}return}if(action==='copy'&&it){copyVal(String(it.values[b.dataset.field]||''));return}if(action==='reveal'&&it){const el=b.closest('.detailfield')?.querySelector('.fieldval');if(el){const shown=el.dataset.revealed==='yes';el.textContent=shown?'••••••••':String(it.values[b.dataset.field]??'');el.dataset.revealed=shown?'no':'yes';b.textContent=shown?'显示':'隐藏';b.setAttribute('aria-pressed',String(!shown));b.setAttribute('aria-label',shown?'显示密码':'隐藏密码')}return}if(action==='visit'&&it){const url=normalizedUrl(it.values[b.dataset.field]);if(!url){toast('网址格式无效，仅支持 HTTP/HTTPS',true);return}window.open(url,'_blank','noopener,noreferrer');return}if(action==='categoryEdit'){categoryEditor(id);return}if(action==='categoryView'){chosenCat=id;navTo('notes');return}if(action==='categoryDelete'){let c=data.categories.find(x=>x.id===id),uses=data.items.filter(x=>x.categoryId===id).length;if(uses){toast('分类内仍有记录，请先转移或删除记录',true);return}if(confirm('删除分类“'+c.name+'”？')){data.categories=data.categories.filter(x=>x.id!==id);mark();render()}return}if(action==='removeField'){b.closest('.type-row').remove();return}}
+function onClick(e){if(sortWasDragged&&e.target.closest('[data-sort-id]')?.dataset.sortId===sortSuppressId){e.preventDefault();e.stopPropagation();sortWasDragged=false;return}let b=e.target.closest('button,[data-action="open"]');if(!b)return;if(b.dataset.view){navTo(b.dataset.view);return}if(b.dataset.category){chosenCat=b.dataset.category;navTo('notes');return}if(b.dataset.catFocus){categoryFocus=b.dataset.catFocus;render();return}if(b.dataset.tab){chosenCat=b.dataset.tab;navTo('notes');return}if(b.dataset.action==='add-category'){categoryEditor();return}const action=b.dataset.action,id=b.dataset.id,it=id&&data.items.find(x=>x.id===id);if(action==='favorite'&&it){e.preventDefault();e.stopPropagation();it.favorite=!it.favorite;mark();render();return}if(action==='open'){openDetail(id);return}if(action==='edit'&&it){recordEditor(it.kind,it.id);return}if(action==='delete'&&it){if(confirm('确认删除“'+it.title+'”？')){data.items=data.items.filter(x=>x.id!==id);mark();navTo('notes')}return}if(action==='copy'&&it){copyVal(String(it.values[b.dataset.field]||''));return}if(action==='reveal'&&it){const el=b.closest('.detailfield')?.querySelector('.fieldval');if(el){const shown=el.dataset.revealed==='yes';el.textContent=shown?'••••••••':String(it.values[b.dataset.field]??'');el.dataset.revealed=shown?'no':'yes';b.textContent=shown?'显示':'隐藏';b.setAttribute('aria-pressed',String(!shown));b.setAttribute('aria-label',shown?'显示密码':'隐藏密码')}return}if(action==='visit'&&it){const url=normalizedUrl(it.values[b.dataset.field]);if(!url){toast('网址格式无效，仅支持 HTTP/HTTPS',true);return}window.open(url,'_blank','noopener,noreferrer');return}if(action==='categoryEdit'){categoryEditor(id);return}if(action==='categoryView'){chosenCat=id;navTo('notes');return}if(action==='categoryDelete'){let c=data.categories.find(x=>x.id===id),uses=data.items.filter(x=>x.categoryId===id).length;if(uses){toast('分类内仍有记录，请先转移或删除记录',true);return}if(confirm('删除分类“'+c.name+'”？')){data.categories=data.categories.filter(x=>x.id!==id);mark();render()}return}if(action==='removeField'){b.closest('.type-row').remove();return}}
+
+// A 380ms long-press activates ordering; dragging does not touch vault encryption until drop.
+function clearSort(){
+ if(pressSort?.timer)clearTimeout(pressSort.timer);
+ if(pressSort?.target)pressSort.target.classList.remove('sorting-source');
+ document.querySelectorAll('.sort-over').forEach(x=>x.classList.remove('sort-over'));
+ if(dragGhost){dragGhost.remove();dragGhost=null}pressSort=null;
+}
+function startSort(ev){
+ if(ev.pointerId!==-1&&ev.pointerType==='touch')return;
+ if(locked||screen!=='notes'||ev.button>0||ev.target.closest('button,input,textarea,select,a,.entry-detail'))return;
+ const tile=ev.target.closest('[data-sort-id]');if(!tile||!tile.closest('#notesList,#notesBoard'))return;
+ if(ev.pointerType==='mouse'&&ev.button!==0)return;
+ clearSort();
+ const origin={x:ev.clientX,y:ev.clientY},id=tile.dataset.sortId;
+ pressSort={id,target:tile,origin,current:origin,pointerId:ev.pointerId,active:false,targetId:null,after:false};
+ pressSort.timer=setTimeout(()=>{
+  if(!pressSort||pressSort.id!==id)return;
+  pressSort.active=true;pressSort.target.classList.add('sorting-source');
+  dragGhost=document.createElement('div');dragGhost.className='sort-ghost';dragGhost.textContent='↕ '+(data.items.find(x=>x.id===id)?.title||'');document.body.appendChild(dragGhost);
+  dragGhost.style.left=pressSort.current.x+14+'px';dragGhost.style.top=pressSort.current.y+14+'px';
+  if(navigator.vibrate)navigator.vibrate(16);
+ },380);
+}
+function moveSort(ev){
+ const p=pressSort;if(!p||p.pointerId!==ev.pointerId)return;
+ p.current={x:ev.clientX,y:ev.clientY};
+ if(!p.active){if(Math.hypot(ev.clientX-p.origin.x,ev.clientY-p.origin.y)>11)clearSort();return}
+ ev.preventDefault();if(dragGhost){dragGhost.style.left=ev.clientX+14+'px';dragGhost.style.top=ev.clientY+14+'px'}
+ let hit=document.elementFromPoint(ev.clientX,ev.clientY)?.closest('[data-sort-id]');
+ document.querySelectorAll('.sort-over').forEach(x=>x.classList.remove('sort-over'));
+ p.targetId=hit&&hit!==p.target?hit.dataset.sortId:null;
+ if(p.targetId){hit.classList.add('sort-over');let box=hit.getBoundingClientRect();p.after=ev.clientY>box.top+box.height*.55}
+}
+function endSort(ev){const p=pressSort;if(!p||p.pointerId!==ev.pointerId)return;const done=p.active,from=p.id,to=p.targetId,after=p.after;clearSort();if(done){sortWasDragged=true;sortSuppressId=from;if(to)reorderItems(from,to,after);setTimeout(()=>{sortWasDragged=false;sortSuppressId=null},200)}}
+// Touch requires an explicit non-passive handler so long-press works even inside a scrollable page.
+document.addEventListener('touchstart',e=>{const t=e.touches[0];if(t)startSort({target:e.target,button:0,pointerType:'touch',pointerId:-1,clientX:t.clientX,clientY:t.clientY})},{passive:true});
+document.addEventListener('touchmove',e=>{const t=e.touches[0];if(t)moveSort({pointerId:-1,clientX:t.clientX,clientY:t.clientY,preventDefault:()=>e.preventDefault()})},{passive:false});
+document.addEventListener('touchend',e=>{const t=e.changedTouches[0];if(t)endSort({pointerId:-1})});
+document.addEventListener('touchcancel',clearSort);
+document.addEventListener('pointerdown',startSort,{passive:true});
+document.addEventListener('pointermove',moveSort,{passive:false});
+document.addEventListener('pointerup',endSort);
+document.addEventListener('pointercancel',clearSort);
+document.addEventListener('contextmenu',e=>{if(pressSort?.active)e.preventDefault()});
+document.addEventListener('keydown',e=>{const card=e.target.closest('.memo-card[data-action=open]');if(card&&(e.key==='Enter'||e.key===' ')&&!e.target.closest('button')){e.preventDefault();openDetail(card.dataset.id)}});
+let lastCols=0;
+window.addEventListener('resize',()=>{clearTimeout(resizeQueue);resizeQueue=setTimeout(()=>{if(!locked&&data?.appearance.style==='memo'&&['home','notes'].includes(screen)){const cols=memoCols();if(cols!==lastCols){lastCols=cols;render()}}},130)});
+
 document.addEventListener('click',onClick);$('toggleSidebar').onclick=()=>{$('sidebar').classList.toggle('expanded');sidebarExpanded=$('sidebar').classList.contains('expanded')};$('memoCollapse').onclick=()=>{$('sidebar').classList.remove('expanded');sidebarExpanded=false};$('sideLock').onclick=lock;$('lockButton').onclick=lock;let searchDelay=0;$('memoSearch').oninput=e=>{query=e.target.value;clearTimeout(searchDelay);searchDelay=setTimeout(()=>{if(screen==='home'||screen==='notes')render()},130)};$('fab').onclick=createPicker;$('addCategory').onclick=()=>categoryEditor();$('detailBack').onclick=()=>navTo('notes');
 $('styleSelect').onchange=e=>{data.appearance.style=e.target.value;mark();applyAppearance();render()};$('cardTypeSelect').onchange=e=>{data.appearance.cardType=e.target.value;mark();render()};$('schemeSelect').onchange=e=>{data.appearance.scheme=e.target.value;mark();applyAppearance()};$('langSelect').onchange=e=>{data.appearance.language=e.target.value;mark();applyAppearance();render()};$('swatches').onclick=e=>{let s=e.target.closest('[data-color]');if(s){data.appearance.accent=s.dataset.color;mark();applyAppearance()}};
 $('saveHtml').onclick=doSaveHtml;$('rebind').onclick=rebindFile;$('backup').onclick=exportBackup;$('import').onclick=openImport;$('exportMarkdown').onclick=exportMarkdown;$('changeSecurity').onclick=requestSecurity;
