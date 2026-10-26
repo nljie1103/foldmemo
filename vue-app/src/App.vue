@@ -16,10 +16,11 @@ import {createSession,openPackage,sealPackage,resetOpenPassword,digestPackage,ty
 import {readEmbedded,sourceShape,loadBinding,saveBinding,forgetBinding,inspectBinding,type FileBinding} from '@/lib/file-binding'
 import { id, newVault, validate, unpack, verifier, filename, htmlWithVault, download, normalizedUrl, initialPackage, type Vault, type Item, type Field, type Category, type FieldType, type Package } from '@/lib/vault'
 
-type Page='home'|'notes'|'categories'|'trash'|'settings'
+type Page='home'|'notes'|'categories'|'trash'|'settings'|'theme'
 const tx=(zh:string,en:string)=>vault.value?.appearance.language==='en'?en:zh
 const vault=ref<Vault|null>(null)
-const page=ref<Page>('home'), sidebarOpen=ref(false), filter=ref('all'), search=ref('')
+const page=ref<Page>('home'), sidebarOpen=ref(window.innerWidth>=1000), filter=ref('all'), search=ref('')
+const themeTab=ref<'style'|'brightness'|'palette'|'layout'>('style')
 const status=ref(''), saveState=ref<'unsaved'|'draft'|'saving'|'saved'|'failed'>('unsaved'), dirty=ref(false), busy=ref(false), lockMode=ref<'create'|'unlock'|'none'|'damaged'>('create')
 let embeddedError=''
 function initialV2():FilePackage<Vault>|null {
@@ -163,7 +164,7 @@ function changePage(p:Page){page.value=p;editorOpen.value=false;noteOpen.value=n
         <div v-if="(recoverySelected ? getCachedPackage()?.encrypted : firstPack?.encrypted)" class="grid gap-1"><Label>打开密码</Label><Input v-model="passphrase" type="password" autocomplete="current-password" @keydown.enter="attempt(unlock)" /></div>
         <Button :disabled="busy" @click="attempt(unlock)">解锁</Button>
       </template>
-      <div class="flex justify-between gap-2"><Button variant="outline" @click="embeddedImportInput?.click()"><Upload class="mr-2" :size="15"/>手动导入保险库</Button><Badge variant="outline">v2.0.0</Badge></div>
+      <div class="flex justify-between gap-2"><Button variant="outline" @click="embeddedImportInput?.click()"><Upload class="mr-2" :size="15"/>手动导入保险库</Button><Badge variant="outline">v2.0.1</Badge></div>
       <div v-if="pendingDraft" class="grid gap-2"><p class="small-note">发现本机恢复草稿。默认以当前 HTML 为准，只有你明确点击才使用草稿。</p><Button variant="outline" @click="recoverySelected=!recoverySelected;lockMode='unlock'">{{recoverySelected?'取消草稿恢复':'恢复本机未同步草稿'}}</Button></div>
       <p v-if="uiError" class="text-destructive text-xs">{{uiError}}</p>
     </CardContent>
@@ -173,14 +174,23 @@ function changePage(p:Page){page.value=p;editorOpen.value=false;noteOpen.value=n
 <div v-else-if="vault" class="app-shell" :class="{'nd-shell':appearance.style==='minimal'}">
   <aside class="sidebar" :class="{collapsed:!sidebarOpen,expanded:sidebarOpen}">
     <div class="brand"><button class="brandmark" aria-label="展开或收起侧边栏" :aria-expanded="sidebarOpen" @click="sidebarOpen=!sidebarOpen">F</button><div v-if="sidebarOpen" class="side-label min-w-0"><strong>FoldMemo</strong><div class="text-xs text-muted-foreground">{{appearance.style==='minimal'?'MY NOTE DESK':'VUE WORKSPACE'}}</div></div></div>
-    <label v-if="appearance.style==='minimal' && sidebarOpen" class="nd-sidebar-search"><Search :size="15"/><input v-model="search" type="search" aria-label="搜索笔记" placeholder="搜索笔记和记录" @focus="page='notes'"/><span class="nd-search-hint">⌘ K</span></label>
+    <div v-if="appearance.style==='modern' && sidebarOpen" class="modern-workspace-switcher"><span class="modern-avatar">F</span><span class="modern-workspace-copy"><strong>私人保险库</strong><small>FoldMemo · Local workspace</small></span><span class="modern-chevron">⌄</span></div>
+    <label v-if="appearance.style==='minimal' && sidebarOpen" class="nd-sidebar-search"><Search :size="15"/><input v-model="search" type="search" aria-label="搜索笔记" placeholder="搜索笔记和记录" @focus="page='notes'"/><span class="nd-search-hint">Ctrl K</span></label>
+    <div v-if="appearance.style==='minimal' && sidebarOpen" class="nd-quick-grid" aria-label="快捷入口">
+      <button @click="filter='all';changePage('notes')" :class="{active:page==='notes'&&filter==='all'}"><NotebookTabs :size="18"/><span>全部笔记</span></button>
+      <button @click="filter='favorites';changePage('notes')" :class="{active:page==='notes'&&filter==='favorites'}"><Star :size="18"/><span>收藏</span></button>
+      <button @click="changePage('categories')" :class="{active:page==='categories'}"><Tags :size="18"/><span>分类</span></button>
+      <button @click="changePage('trash')" :class="{active:page==='trash'}"><Trash2 :size="18"/><span>回收站</span></button>
+    </div>
     <nav class="sidebar-nav grid content-start gap-1">
-      <div v-if="appearance.style==='minimal' && sidebarOpen" class="nd-side-section">工作空间</div>
+      <div v-if="appearance.style==='minimal' && sidebarOpen" class="nd-side-section">▴ 快捷访问</div><div v-if="appearance.style==='modern' && sidebarOpen" class="modern-group-label">工作空间 / WORKSPACE</div>
       <button v-for="x in [{key:'home',label:'首页',icon:Home},{key:'notes',label:'笔记与记录',icon:NotebookTabs},{key:'categories',label:'分类管理',icon:Tags},{key:'trash',label:'回收站',icon:Trash2},{key:'settings',label:'设置',icon:Settings2}]" :key="x.key" class="side-link" :class="{active:page===x.key}" :title="x.label" @click="changePage(x.key as Page)"><component :is="x.icon" :size="18"/><span class="side-label">{{x.label}}</span></button>
     </nav>
+    <div class="sidebar-theme-group"><div v-if="sidebarOpen" class="sidebar-section-label">外观</div><button class="side-link sidebar-theme-link" :class="{active:page==='theme'}" title="系统主题" @click="changePage('theme')"><Sun :size="18"/><span class="side-label">系统主题</span></button></div>
     <div class="nd-sidebar-bottom"><button class="side-link" title="锁定" @click="lock"><Lock :size="18"/><span class="side-label">锁定保险库</span></button><div v-if="appearance.style==='minimal' && sidebarOpen" class="nd-profile"><div class="nd-avatar">F</div><div class="nd-profile-copy"><strong>私人保险库</strong><span>{{allItems.length}} 条记录 · 本地</span></div></div></div>
   </aside>
   <section class="work">
+    <header v-if="appearance.style==='modern'" class="modern-topbar"><div class="modern-breadcrumb"><span>FoldMemo</span><span class="modern-slash">/</span><strong>{{({home:'仪表盘',notes:'笔记与记录',categories:'分类管理',trash:'回收站',settings:'设置',theme:'系统主题'} as Record<Page,string>)[page]}}</strong></div><div class="modern-top-actions"><span class="modern-top-status">{{saveStateLabel}}</span><button class="modern-top-icon" title="切换日间/夜间" @click="editAppearance('mode',appearance.mode==='dark'?'light':'dark')"><Sun v-if="appearance.mode==='dark'" :size="16"/><Moon v-else :size="16"/></button><button class="modern-top-icon" title="系统主题" @click="changePage('theme')"><Settings2 :size="16"/></button><span class="modern-top-avatar">F</span></div></header>
     <!-- 简洁风：只在编辑记录时显示 Chrome 式工作标签，分类筛选永远在下方内容区。 -->
     <div v-if="appearance.style==='minimal' && editorOpen" class="toolbar-tab"><button class="editor-tab" @click="editorOpen=false">{{editorId?'编辑':'新建'}} · {{draft.title||'未命名'}} <span class="ml-3">×</span></button></div>
     <div class="content" :class="{'nd-content':appearance.style==='minimal'}">
@@ -197,7 +207,7 @@ function changePage(p:Page){page.value=p;editorOpen.value=false;noteOpen.value=n
       <template v-else>
       <div v-if="page==='home'" class="section">
         <div class="content-top"><div><h1 class="page-title">工作台</h1><p class="subhead">分类、记录和笔记统计</p></div><Badge variant="secondary">{{allItems.length}} 条内容</Badge></div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3"><Card v-for="x in [{name:'账号记录',n:counts.records},{name:'长文本笔记',n:counts.notes},{name:'自定义分类',n:groups.length}]" :key="x.name" class="work-card"><CardHeader class="pb-2"><CardDescription>{{x.name}}</CardDescription><CardTitle class="text-3xl">{{x.n}}</CardTitle></CardHeader></Card></div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3"><Card v-for="x in [{name:'账号记录',n:counts.records},{name:'长文本笔记',n:counts.notes},{name:'收藏内容',n:counts.favorites},{name:'自定义分类',n:groups.length}]" :key="x.name" class="work-card"><CardHeader class="pb-2"><CardDescription>{{x.name}}</CardDescription><CardTitle class="text-3xl">{{x.n}}</CardTitle></CardHeader></Card></div>
         <Card class="work-card"><CardHeader><CardTitle>分类分布</CardTitle><CardDescription>点击分类跳转查看对应记录</CardDescription></CardHeader><CardContent class="grid gap-3"><div v-if="!groups.length" class="small-note">尚未添加分类。请先在「分类管理」创建字段模板。</div><button v-for="c in groups" :key="c.id" class="text-left grid gap-1" @click="filter=c.id;changePage('notes')"><div class="flex justify-between text-sm"><strong>{{c.name}}</strong><span>{{allItems.filter(i=>i.categoryId===c.id).length}}</span></div><div class="bg-muted rounded-full h-2 overflow-hidden"><div class="bg-primary h-full rounded-full" :style="{width:(100*allItems.filter(i=>i.categoryId===c.id).length/Math.max(1,allItems.length))+'%'}"></div></div></button></CardContent></Card>
       </div>
       <div v-else-if="page==='notes'" class="section">
@@ -230,15 +240,28 @@ function changePage(p:Page){page.value=p;editorOpen.value=false;noteOpen.value=n
         <div v-if="!deletedItems.length" class="small-note">回收站为空</div>
         <Card v-for="entry in deletedItems" :key="entry.item.id" class="work-card"><CardContent class="flex justify-between items-center gap-3 py-4"><div class="min-w-0"><strong>{{entry.item.title}}</strong><p class="small-note">{{new Date(entry.deletedAt).toLocaleString()}}</p></div><div class="flex gap-2"><Button variant="outline" @click="restoreItem(entry.item.id)">恢复</Button><Button variant="destructive" @click="purgeItem(entry.item.id)">永久删除</Button></div></CardContent></Card>
       </div>
+      <div v-else-if="page==='theme'" class="section theme-page">
+        <div class="content-top"><div><h1 class="page-title">系统主题</h1><p class="subhead">为整个工作台选择独立设计语言、配色、明暗与排版</p></div><Badge variant="secondary">外观设置独立侧栏</Badge></div>
+        <div class="theme-workspace">
+          <aside class="theme-detail-sidebar" aria-label="主题设置分类">
+            <button :class="{active:themeTab==='style'}" @click="themeTab='style'"><NotebookTabs :size="16"/>三套界面风格</button>
+            <button :class="{active:themeTab==='brightness'}" @click="themeTab='brightness'"><Moon :size="16"/>日间与夜间</button>
+            <button :class="{active:themeTab==='palette'}" @click="themeTab='palette'"><Star :size="16"/>全局主题配色</button>
+            <button :class="{active:themeTab==='layout'}" @click="themeTab='layout'"><PanelLeftClose :size="16"/>布局与语言</button>
+          </aside>
+          <div class="theme-detail-body">
+            <section v-if="themeTab==='style'" class="theme-setting-panel"><h2>界面风格</h2><p class="theme-panel-hint">三个主题是完整的布局与组件体系，不只是改变颜色。</p>
+              <div class="theme-style-grid">
+                <button v-for="opt in [{id:'default',title:'默认风格',desc:'v1.0.4 经典 iOS 玻璃工作台',cls:'theme-prev-glass'},{id:'minimal',title:'简洁风',desc:'Note Desk 平面便签工作台',cls:'theme-prev-minimal'},{id:'modern',title:'现代风',desc:'AppDown · shadcn New York + Linear',cls:'theme-prev-modern'}]" :key="opt.id" type="button" class="theme-style-option" :class="{selected:appearance.style===opt.id}" :aria-pressed="appearance.style===opt.id" @click="editAppearance('style',opt.id as Vault['appearance']['style'])"><span class="theme-miniature" :class="opt.cls"><i/><b/><em/><em/><em/></span><strong>{{opt.title}}</strong><small>{{opt.desc}}</small><span class="theme-choice-indicator">{{appearance.style===opt.id?'✓ 已启用':'选择主题'}}</span></button>
+              </div></section>
+            <section v-else-if="themeTab==='brightness'" class="theme-setting-panel"><h2>日间与夜间</h2><p class="theme-panel-hint">控制整套工作台的背景、文字、表面、侧栏与弹窗。</p><div class="theme-mode-list"><button v-for="opt in [{id:'light',label:'浅色',desc:'明亮清晰的工作台'},{id:'dark',label:'深色',desc:'低亮度深色表面'},{id:'system',label:'跟随系统',desc:'自动响应 Windows / 浏览器系统设置'}]" :key="opt.id" :class="{active:appearance.mode===opt.id}" @click="editAppearance('mode',opt.id as Vault['appearance']['mode'])"><Sun v-if="opt.id==='light'" :size="17"/><Moon v-else :size="17"/><span><strong>{{opt.label}}</strong><small>{{opt.desc}}</small></span><Check v-if="appearance.mode===opt.id" :size="17"/></button></div></section>
+            <section v-else-if="themeTab==='palette'" class="theme-setting-panel"><h2>全局主题颜色</h2><p class="theme-panel-hint">同步作用于页面背景、导航、卡片、弹窗、按钮、焦点与提示。色板随三种设计语言分别调整。</p><div class="theme-accent-options"><button v-for="x in [{id:'violet',name:'紫罗兰',color:'#5d57fc'},{id:'blue',name:'海洋蓝',color:'#277cdc'},{id:'green',name:'翡翠绿',color:'#159f74'},{id:'rose',name:'玫瑰红',color:'#dc5387'}]" :key="x.id" :class="{active:appearance.accent===x.id}" @click="editAppearance('accent',x.id as Vault['appearance']['accent'])"><span :style="{background:x.color}"/><strong>{{x.name}}</strong><Check v-if="appearance.accent===x.id" :size="15"/></button></div></section>
+            <section v-else class="theme-setting-panel"><h2>显示与语言</h2><p class="theme-panel-hint">卡片视图与列表视图对所有风格生效。</p><div class="setting-line"><div><strong>内容布局</strong><p class="small-note">卡片 / 列表</p></div><Select :model-value="appearance.cards" @update:model-value="v=>editAppearance('cards',v as Vault['appearance']['cards'])"><SelectTrigger class="w-44"><SelectValue/></SelectTrigger><SelectContent><SelectItem value="cards">卡片</SelectItem><SelectItem value="list">列表</SelectItem></SelectContent></Select></div><div class="setting-line"><div><strong>界面语言</strong><p class="small-note">保留当前语言设置</p></div><Select :model-value="appearance.language" @update:model-value="v=>editAppearance('language',v as 'zh'|'en')"><SelectTrigger class="w-44"><SelectValue/></SelectTrigger><SelectContent><SelectItem value="zh">中文</SelectItem><SelectItem value="en">English</SelectItem></SelectContent></Select></div></section>
+          </div>
+        </div>
+      </div>
       <div v-else-if="page==='settings'" class="section">
-        <div class="content-top"><div><h1 class="page-title">设置</h1><p class="subhead">全局主题、独立密码、当前文件与导出</p></div></div>
-        <Card class="work-card"><CardHeader><CardTitle>系统外观</CardTitle></CardHeader><CardContent class="grid gap-4">
-          <div class="setting-line"><div><strong>主题样式</strong><p class="small-note">现代风使用真实 shadcn-vue 组件</p></div><Select :model-value="appearance.style" @update:model-value="v=>editAppearance('style',v as Vault['appearance']['style'])"><SelectTrigger class="w-44"><SelectValue/></SelectTrigger><SelectContent><SelectItem value="default">默认风格</SelectItem><SelectItem value="minimal">简洁风</SelectItem><SelectItem value="modern">现代风</SelectItem></SelectContent></Select></div>
-          <div class="setting-line"><div><strong>内容布局</strong><p class="small-note">列表或卡片，两种视图均可使用</p></div><Select :model-value="appearance.cards" @update:model-value="v=>editAppearance('cards',v as Vault['appearance']['cards'])"><SelectTrigger class="w-44"><SelectValue/></SelectTrigger><SelectContent><SelectItem value="cards">卡片</SelectItem><SelectItem value="list">列表</SelectItem></SelectContent></Select></div>
-          <div class="setting-line"><div><strong>日间 / 夜间</strong><p class="small-note">包含跟随系统选项</p></div><Select :model-value="appearance.mode" @update:model-value="v=>editAppearance('mode',v as Vault['appearance']['mode'])"><SelectTrigger class="w-44"><SelectValue/></SelectTrigger><SelectContent><SelectItem value="light">日间</SelectItem><SelectItem value="dark">夜间</SelectItem><SelectItem value="system">跟随系统</SelectItem></SelectContent></Select></div>
-          <div class="setting-line"><div><strong>全局主题色</strong><p class="small-note">同步改变背景、侧栏、卡片、按钮、焦点与提示色</p></div><div class="pill-swatches"><button v-for="x in [{id:'violet',color:'#6957ed'},{id:'blue',color:'#277cdc'},{id:'green',color:'#159f74'},{id:'rose',color:'#dc5387'}]" :key="x.id" class="swatch" :class="{active:appearance.accent===x.id}" :style="{background:x.color}" @click="editAppearance('accent',x.id as Vault['appearance']['accent'])"></button></div></div>
-          <div class="setting-line"><div><strong>界面语言</strong></div><Select :model-value="appearance.language" @update:model-value="v=>editAppearance('language',v as 'zh'|'en')"><SelectTrigger class="w-44"><SelectValue/></SelectTrigger><SelectContent><SelectItem value="zh">中文</SelectItem><SelectItem value="en">English</SelectItem></SelectContent></Select></div>
-        </CardContent></Card>
+        <div class="content-top"><div><h1 class="page-title">设置</h1><p class="subhead">独立密码、当前文件管理、保险库导入与导出</p></div></div>
         <Card class="work-card"><CardHeader><CardTitle>独立密码管理</CardTitle><CardDescription>两套密码互不依赖。修改其中一个无需修改另一个。</CardDescription></CardHeader><CardContent class="grid gap-3"><div class="setting-line"><div><strong>打开密码</strong><p class="small-note">用于本设备打开 HTML 内嵌保险库；关闭后当前 HTML 内数据为明文</p></div><Button variant="outline" @click="modalPassword='open'">{{hasOpenPassword?'修改 / 关闭':'设置打开密码'}}</Button></div><div class="setting-line"><div><strong>存储加密密码</strong><p class="small-note">用于导出加密备份，不会在每次打开时索取</p></div><Button variant="outline" @click="modalPassword='storage'">修改 / 关闭</Button></div></CardContent></Card>
         <Card class="work-card"><CardHeader><CardTitle>当前 HTML 文件</CardTitle><CardDescription>不会悄悄创建第二份数据文件</CardDescription></CardHeader><CardContent class="grid gap-3"><p class="small-note">当前文件：{{filename()}}。浏览器不提供文件选择器的完整磁盘路径；只能验证文件名及保险库身份。</p><p class="small-note">{{savedFile?'已验证绑定：'+savedFile:'尚未授权当前文件写入。浏览器草稿不是 HTML 文件本身。'}}</p><p v-if="importedVaultPending" class="text-sm text-destructive">当前是导入的另一份保险库，禁止覆盖原 HTML。请下载独立 HTML 副本并重新打开。</p><Button v-if="importedVaultPending" variant="outline" @click="attempt(downloadImportedHtml)">下载独立保险库 HTML</Button><Button v-else class="w-fit" variant="outline" @click="attempt(manualSync)"><Save class="mr-2" :size="16"/>{{savedFile?'同步当前 HTML':'首次授权当前 HTML 写入'}}</Button><p class="text-xs text-destructive">如果没有授权写入，请勿直接复制旧 HTML 作为最新备份。</p></CardContent></Card>
         <Card class="work-card"><CardHeader><CardTitle>导出保险库</CardTitle><CardDescription>点击后选择加密或明文；加密时默认验证存储密码</CardDescription></CardHeader><CardContent><Button variant="outline" @click="exportPrompt=true"><FileDown :size="16" class="mr-2"/>导出保险库 JSON</Button></CardContent></Card>
@@ -248,7 +271,7 @@ function changePage(p:Page){page.value=p;editorOpen.value=false;noteOpen.value=n
       </template>
     </div>
   </section>
-  <div class="status" role="status"><strong>{{saveStateLabel}}</strong> · {{status||'FoldMemo 2.0.0 · 保存状态以磁盘写入为准'}}</div>
+  <div class="status" role="status"><strong>{{saveStateLabel}}</strong> · {{status||'FoldMemo 2.0.1 · 保存状态以磁盘写入为准'}}</div>
 </div>
 
 <!-- 笔记完整阅读页 -->

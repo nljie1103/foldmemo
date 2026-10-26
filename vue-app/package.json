@@ -1,16 +1,17 @@
 {
   "name": "foldmemo",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "build": "npm run test:proxy && npm run test && vue-tsc --noEmit && vite build",
+    "build": "npm run test:theme && npm run test:proxy && npm run test && vue-tsc --noEmit && vite build",
     "preview": "vite preview --host 127.0.0.1",
     "test": "node --no-warnings --experimental-strip-types tests.mjs && node scripts/check-html-embed.mjs",
     "typecheck": "vue-tsc --noEmit",
     "verify:artifact": "node scripts/check-dist.mjs",
-    "test:proxy": "node --no-warnings --experimental-strip-types scripts/proxy-regression.mjs"
+    "test:proxy": "node --no-warnings --experimental-strip-types scripts/proxy-regression.mjs",
+    "test:theme": "node scripts/theme-regression.mjs"
   },
   "dependencies": {
     "vue": "^3.5.0",
