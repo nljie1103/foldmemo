@@ -1,23 +1,32 @@
+import type { FilePackage } from './security-v2'
+
 export type FieldType = 'text' | 'password' | 'url' | 'textarea'
 export interface Field { id: string; name: string; type: FieldType }
 export interface Category { id: string; name: string; fields: Field[] }
+export interface DeletedItem { item: Item; deletedAt: number }
 export interface Item {
   id: string; title: string; kind: 'note' | 'record'; categoryId: string;
   body: string; values: Record<string,string>; favorite: boolean; order: number; updated: number
 }
 export interface Appearance { style: 'default'|'minimal'|'modern'; mode: 'light'|'dark'|'system'; accent: 'violet'|'blue'|'green'|'rose'; cards: 'cards'|'list'; language: 'zh'|'en' }
 export interface Security { openEnabled: boolean; storageEnabled: boolean; exportVerifier?: string; exportSalt?: string }
-export interface Vault { format:'foldmemo-vue-1'; id: string; categories: Category[]; items: Item[]; appearance:Appearance; security:Security }
+export interface Vault { format:'foldmemo-vue-1'; id: string; categories: Category[]; items: Item[]; trash?: DeletedItem[]; appearance:Appearance; security:Security }
 export type Package = {format:'foldmemo-vue-package-1'; encrypted:true; salt:string; iv:string; rounds:number; payload:string; bits:number } | {format:'foldmemo-vue-package-1'; encrypted:false; plain:Vault}
 
 export function id() { return crypto.randomUUID() }
-export function newVault(): Vault { return {format:'foldmemo-vue-1',id:id(),categories:[],items:[],appearance:{style:'default',mode:'light',accent:'violet',cards:'cards',language:'zh'},security:{openEnabled:true,storageEnabled:true}} }
+export function newVault(): Vault { return {format:'foldmemo-vue-1',id:id(),categories:[],items:[],trash:[],appearance:{style:'default',mode:'light',accent:'violet',cards:'cards',language:'zh'},security:{openEnabled:true,storageEnabled:true}} }
 export function validate(input: unknown): Vault {
-  const v = input as Vault
-  if(!v || v.format!=='foldmemo-vue-1' || typeof v.id!=='string' || !Array.isArray(v.categories) || !Array.isArray(v.items) || !v.appearance || !v.security || v.items.length>50000 || v.categories.length>2000) throw Error('数据格式不受支持或结构无效')
-  const cats=new Set<string>()
-  for(const c of v.categories){ if(!c || typeof c.id!=='string' || typeof c.name!=='string' || !Array.isArray(c.fields) || c.fields.length>100 || cats.has(c.id))throw Error('分类模板数据不合法');cats.add(c.id); for(const f of c.fields){if(!f || !['text','password','url','textarea'].includes(f.type) || typeof f.name!=='string' || typeof f.id!=='string')throw Error('字段模板不合法')} }
-  for(const i of v.items){ if(!i || typeof i.title!=='string' || !['record','note'].includes(i.kind) || typeof i.body!=='string' || !i.values || typeof i.values!=='object')throw Error('记录格式不合法') }
+  const v=input as Vault
+  if(!v || v.format!=='foldmemo-vue-1' || typeof v.id!=='string' || !v.id || !Array.isArray(v.categories) || !Array.isArray(v.items) || !v.appearance || !v.security || v.items.length>50000 || v.categories.length>2000) throw Error('保险库结构或格式无效')
+  if(v.trash!==undefined && (!Array.isArray(v.trash)||v.trash.length>50000))throw Error('回收站数据无效')
+  if(!['default','minimal','modern'].includes(v.appearance.style)||!['light','dark','system'].includes(v.appearance.mode)||!['cards','list'].includes(v.appearance.cards))throw Error('外观配置无效')
+  const cats=new Set<string>(),itemIds=new Set<string>()
+  for(const c of v.categories){if(!c||typeof c.id!=='string'||!c.id||typeof c.name!=='string'||!Array.isArray(c.fields)||c.fields.length>100||cats.has(c.id))throw Error('分类模板重复或损坏');cats.add(c.id);const fields=new Set<string>();for(const f of c.fields){if(!f||!['text','password','url','textarea'].includes(f.type)||typeof f.name!=='string'||typeof f.id!=='string'||!f.id||fields.has(f.id))throw Error('字段模板重复或损坏');fields.add(f.id)}}
+  function checkItem(i:Item){if(!i||typeof i.id!=='string'||!i.id||itemIds.has(i.id)||typeof i.title!=='string'||!['record','note'].includes(i.kind)||typeof i.body!=='string'||!i.values||typeof i.values!=='object'||Array.isArray(i.values)||typeof i.favorite!=='boolean'||!Number.isFinite(i.order)||!Number.isFinite(i.updated))throw Error('记录字段损坏或 ID 重复');if(i.kind==='record'&&!cats.has(i.categoryId))throw Error('记录引用了不存在的分类');itemIds.add(i.id);for(const [k,val] of Object.entries(i.values)){if(typeof val!=='string'||k==='__proto__'||k==='constructor')throw Error('记录字段值不合法')}}
+  for(const it of v.items)checkItem(it)
+  for(const entry of v.trash||[]){if(!entry||!Number.isFinite(entry.deletedAt))throw Error('回收站时间格式无效');checkItem(entry.item)}
+  if(JSON.stringify(v).length>20_000_000)throw Error('保险库大小超过 20 MB 限额')
+  if(!v.trash)v.trash=[]
   return v
 }
 const enc=new TextEncoder(), dec=new TextDecoder()
@@ -31,9 +40,9 @@ export async function verifier(pass:string,salt?:string){if(!pass)throw Error('�
 export function filename(fallback='FoldMemo.html'){try{return decodeURIComponent(location.pathname.split('/').pop()||fallback)}catch{return fallback}}
 export function initialPackage(): Package|null {
   const el=document.getElementById('foldmemo-embedded');if(!el?.textContent?.trim() || el.textContent.trim()==='null')return null
-  try{return JSON.parse(el.textContent) as Package}catch{return null}
+  try{return JSON.parse(el.textContent) as Package}catch{throw Error('保险库文件非空但无法解析，禁止初始化覆盖')}
 }
-export function htmlWithVault(source:string, p:Package):string {
+export function htmlWithVault(source:string, p:Package | FilePackage<Vault>):string {
   const doc=new DOMParser().parseFromString(source,'text/html'),el=doc.getElementById('foldmemo-embedded');if(!el)throw Error('HTML 模板缺少内嵌保险库标识');
   el.textContent=JSON.stringify(p).replace(/</g,'\\u003c');
   return '<!doctype html>\n'+doc.documentElement.outerHTML

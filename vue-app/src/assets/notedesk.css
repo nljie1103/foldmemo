@@ -230,3 +230,6 @@
 @media(prefers-reduced-motion:reduce) {
  :root[data-style="minimal"] * {transition:none!important;animation:none!important;}
 }
+
+/* Independent accessible handles for long press + keyboard reorder */
+.note-drag-wrap{position:relative}.note-sort-handle{position:absolute;z-index:5;right:6px;top:5px;display:grid;place-items:center;width:24px;height:26px;background:transparent;border:0;border-radius:5px;color:#889098;touch-action:none;cursor:grab}.note-sort-handle:hover,.note-sort-handle:focus-visible{background:#f1f0ff;color:#5d57fc;outline:2px solid #c4bffc}.drag-keyboard-handle{display:inline-flex;touch-action:none;cursor:grab;border-radius:4px}.drag-keyboard-handle:focus-visible{outline:2px solid var(--primary)}
